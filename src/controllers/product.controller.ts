@@ -1,5 +1,5 @@
 import { type Request, type Response } from "express";
-export const getProducts = (req: Request, res: Response): void => {
+export const getProducts =  (req: Request, res: Response): void => {
   const products = [
     {
       id: 1,
