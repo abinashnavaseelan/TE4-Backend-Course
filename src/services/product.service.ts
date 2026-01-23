@@ -1,18 +1,40 @@
-import { Product, ProductDocument } from "../models/product.model";
-
-const products: ProductDocument[] = [];
-
-export function findAll(): ProductDocument[] {
-  return products;
+interface product {
+  id: number;
+  name: string;
 }
 
-export function create(
-  productData: Omit<ProductDocument, "id">,
-): ProductDocument {
-  const newProduct: ProductDocument = {
-    ...productData
-    id: Date.now(), // Use number if ProductDocument.id is a number, or keep .toString() if it's a string
-  };
-  products.push(newProduct);
-  return newProduct;
-}
+const products: product[] = [
+  {
+    id: 1,
+    name: "iphone 18 pro max",
+  },
+  {
+    id: 2,
+    name: "iphone ultra",
+  },
+];
+
+export const getAllProducts = async (): Promise<product[]> => {
+  return new Promise((resolve) => {
+    resolve(products);
+  });
+};
+
+export const createdProduct = async (name: string): Promise<product> => {
+  return new Promise((resolve, reject) => {
+    const existingProduct = products.find((product) => product.name === name);
+
+    if (existingProduct) {
+      reject(new Error("product already exists in this system"));
+      return;
+    }
+
+    const newProduct: product = {
+      id: products.length + 1,
+      name,
+    };
+
+    products.push(newProduct);
+    resolve(newProduct);
+  });
+};

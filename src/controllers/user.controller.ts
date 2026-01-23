@@ -1,58 +1,82 @@
-import type { Request, Response } from "express";
-import * as userService from "../services/user.service";
+import { NextFunction, type Request, type Response } from "express";
+import { CreateUserTypeZ } from "../models/user.model";
+import {
+  createUser,
+  deleteUserService,
+  findAll,
+  findById,
+  updateUserService,
+} from "../services/user.service";
 
-export const createUser = async (
-  req: Request<{}, {}, userService.Users>,
+export const create = async (
+  req: Request<{}, {}, CreateUserTypeZ>,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
-    const { name, email, age } = req.body;
-    const newUser = await userService.createUser(name, email, age);
-    res.status(201).json(newUser);
+    const user = await createUser(req.body);
+    res.status(201).json(user);
   } catch (error) {
-    res.status(500).json({ msg: "User creation failed", error });
+    next(error);
   }
 };
 
-export const getAllUser = async (req: Request, res: Response) => {
+export const getUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
-    const users = await userService.getAllUsers();
+    const users = await findAll();
     res.status(200).json(users);
   } catch (error) {
-    res.status(500).json({ msg: "Failed to retrive users", error });
+    next(error);
   }
 };
 
 export const getUserById = async (
-  req: Request<{ id: string }>,
+  req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
-    const user = await userService.getUserById(req.params.id);
+    const id = req.params.id as string;
+    const user = await findById(id);
     if (!user) {
-      return res.status(404).json({ msg: "User not found" });
+      return res.status(404).json({ message: "User not found" });
     }
-    res.status(200).json(user);
+    res.json(user);
   } catch (error) {
-    res.status(500).json({ Message: "Failed to retrieve user", error });
+    next(error);
   }
 };
 
-export const updateById = async (
-  req: Request<{ id: string }, {}, Partial<userService.Users>>,
+export const updateUser = async (
+  req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
-  const changeUser = await userService.updateById(req.params.id, req.body);
-  res.status(200).json(changeUser);
+  try {
+    const id = req.params.id as string;
+    const changes = req.body;
+    const updatedUser = await updateUserService(id, changes);
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    next(error);
+  }
 };
 
-export const deleteById = async (
-  req: Request<{ id: string }>,
+export const deleteUser = async (
+  req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
-  const removeUser = await userService.deleteById(req.params.id);
-  if (!removeUser) {
-    return res.status(404).json({ msg: "User not found" });
+  try {
+    const id = req.params.id as string;
+    await deleteUserService(id);
+
+    res.status(200).json({ msg: "Deleted successfully" });
+  } catch (error) {
+    next(error);
   }
-  res.status(200).json({ msg: "User deleted successfully" });
 };
