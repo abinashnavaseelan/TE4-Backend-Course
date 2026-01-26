@@ -1,44 +1,79 @@
-import { UserModel, type User } from "../models/user.model";
-import { AppError } from "../utils/app.error";
+import { UserDB } from "../models/user.model";
+import { AppError } from "../util/app.error";
 
-export const createUser = async (data: User): Promise<User> => {
-  return await UserModel.create(data); //! this neds to be changed
-};
+export const getAllUsersService = async () => {
+  const users = await UserDB.find();
 
-export const findAll = async () => {
-  const allUsers = await UserModel.find({});
-  if (allUsers.length === 0) {
-    throw new AppError("users not found", 404);
+  if (!users || users.length === 0) {
+    // catch the error in the controller
+    throw new AppError("No users found", 404);
   }
-  return;
+
+  return users;
 };
 
-export const findById = async (id: string) => {
-  const user = await UserModel.findById(id);
+export const getUserByIdService = async (id: string) => {
+  const user = await UserDB.findById(id);
+
   if (!user) {
-    throw new AppError("user not found", 404);
+    throw new AppError("User not found", 404);
   }
 
   return user;
 };
 
-export const updateUserService = async (
-  id: string,
-  updateData: Partial<User>,
+export const createUserService = async (
+  name: string,
+  age: number,
+  email: string,
+  isAdmin: boolean,
 ) => {
-  const existingUser = await UserModel.findById(id);
-  if (!existingUser) throw new Error("User not found...");
-  const updatedUser = await UserModel.findByIdAndUpdate(id, updateData, {
-    new: true,
-    runValidators: true,
-  });
+  const existingUser = await UserDB.findOne({ name });
 
-  if (!updatedUser) throw new Error("User not found...");
-  return updatedUser;
+  if (existingUser) {
+    throw new AppError("User with the same name already exists", 409);
+  }
+
+  const newUser = { name, age, email, isAdmin };
+  const createdUser = await UserDB.create(newUser);
+  return createdUser;
 };
 
-export const deleteUserService = async (id: string) => {
-  const deletedUser = await UserModel.findByIdAndDelete(id);
-  if (!deletedUser) throw new Error("User not found...");
-  return deletedUser;
+export const deleteUserByIdService = async (id: string) => {
+  const userToDelete = await UserDB.findById(id);
+
+  if (!userToDelete) {
+    throw new AppError(
+      "The user your are trying to delete does not exist...Try again!",
+      404,
+    );
+  }
+
+  const deleted = await UserDB.findByIdAndDelete(userToDelete._id);
+
+  return {
+    deleted,
+    message: `${deleted?.name} has been deleted.`,
+  };
+};
+
+export const updateUserByIdService = async (
+  id: string,
+  updateData: { name: string; age: number; email: string; isAdmin: boolean },
+) => {
+  const userToUpdate = await UserDB.findByIdAndUpdate(id, updateData, {
+    new: true,
+  });
+
+  if (!userToUpdate) {
+    throw new AppError(
+      "The user you are trying to update does not exist...Try again!",
+      404,
+    );
+  }
+
+  Object.assign(userToUpdate, updateData);
+  const updatedUser = await userToUpdate.save();
+
+  return updatedUser;
 };

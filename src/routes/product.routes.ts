@@ -1,10 +1,19 @@
 import { Router } from "express";
-import { getProducts } from "./../controllers/product.controller";
+import {
+  createProduct,
+  deleteProductById,
+  getProductById,
+  getProducts,
+  updateProductById,
+} from "../controllers/product.controller";
+import { validate } from "../middleware/validate.middleware";
+import { createProductValidation } from "../models/product.model";
 
 const router = Router();
-
-router.get("/");
-router.post("/", getProducts);
-router.put("/", getProducts);
+router.get("/", getProducts);
+router.get("/:id", getProductById);
+router.post("/", validate(createProductValidation), createProduct);
+router.delete("/:id", deleteProductById);
+router.patch("/:id", updateProductById);
 
 export default router;

@@ -1,12 +1,8 @@
-import {
-  ErrorRequestHandler,
-  NextFunction,
-  type Request,
-  type Response,
-} from "express";
-import mongoose, { Error } from "mongoose";
-import { AppError } from "../utils/app.error";
-import { ZodError } from "zod";
+import { Request, Response, NextFunction, ErrorRequestHandler } from "express";
+import mongoose from "mongoose";
+import { AppError } from "../util/app.error";
+import { object, ZodError } from "zod";
+import path from "node:path";
 
 export const errorHandler: ErrorRequestHandler = (
   err: Error,
@@ -16,6 +12,7 @@ export const errorHandler: ErrorRequestHandler = (
 ) => {
   void req;
   void next;
+
   let statusCode = 500;
   let message = "Server Error";
   let details: unknown;
@@ -28,9 +25,17 @@ export const errorHandler: ErrorRequestHandler = (
     message = err.message;
   }
 
+  console.error(err);
+  res.status(statusCode).json({
+    message,
+    details,
+    errors,
+  });
+
   if (err instanceof ZodError) {
     statusCode = 400;
     message = "Validation Error";
+
     details = err.issues.map((issue) => ({
       path: issue.path.join("."),
       message: issue.message,
@@ -46,7 +51,7 @@ export const errorHandler: ErrorRequestHandler = (
 
   if (err instanceof mongoose.Error.ValidationError) {
     statusCode = 400;
-    message = "Database Validation Error";
+    message = "Validation Error";
     details = Object.values(err.errors).map((e) => ({
       path: e.path,
       message: e.message,
@@ -60,9 +65,7 @@ export const errorHandler: ErrorRequestHandler = (
     (err as any).code === 11000
   ) {
     statusCode = 409;
-    message = "Duplicate key error";
+    message = "Duplicate Key Error";
     details = (err as any).keyValue ?? (err as any).keyPattern;
   }
-
-  res.status(statusCode).json({ message, details, errors });
 };
