@@ -1,79 +1,62 @@
-import { NextFunction, Request, Response } from "express";
+import { type Request, type Response } from "express";
 import {
-  createUserService,
-  deleteUserByIdService,
-  getAllUsersService,
-  getUserByIdService,
-  updateUserByIdService,
+  createUser,
+  deleteUserService,
+  findAll,
+  findById,
+  updateUserService,
 } from "../services/user.service";
-import { CreateUserTypeZ } from "../models/user.model";
 
-export const getUsers = async (req: Request, res: Response) => {
+export const create = async (req: Request, res: Response) => {
   try {
-    const users = await getAllUsersService();
-    res.status(200).send(users);
+    const user = await createUser(req.body);
+    res.status(201).json(user);
   } catch (error) {
     res.status(500).send({ message: (error as Error).message });
   }
 };
 
-export const createUser = async (
-  req: Request<{}, {}, CreateUserTypeZ>,
-  res: Response,
-  next: NextFunction,
-) => {
+export const getUser = async (req: Request, res: Response) => {
   try {
-    const { name, age, email, isAdmin } = req.body;
-    if (!name || !age || !email || isAdmin === undefined) {
-      return res
-        .status(400)
-        .send({ message: "Name, age, email, and isAdmin are required" });
+    const users = await findAll();
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).send({ message: (error as Error).message });
+  }
+};
+
+export const getUserById = async (req: Request, res: Response) => {
+  try {
+    const user = await findById(req.params.id as string);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
-    const newUser = await createUserService(name, age, email, isAdmin);
-    res.status(201).json(newUser);
+    res.json(user);
   } catch (error) {
-    next(error);
+    res.status(500).send({ message: (error as Error).message });
   }
 };
 
-export const getUserById = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
+export const updateUser = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    const user = await getUserByIdService(id as string);
-    res.status(200).json(user);
+    const updatedUser = await updateUserService(
+      req.params.id as string,
+      req.body,
+    );
+    res.status(200).json(updatedUser);
   } catch (error) {
-    next(error);
+    res.status(500).send({ message: (error as Error).message });
   }
 };
 
-export const deleteUserById = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
+export const deleteUser = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    const user = await deleteUserByIdService(id as string);
-    res.status(200).json(user);
+    const result = await deleteUserService(req.params.id as string);
+    if (!result) {
+      return res.status(404).json({ msg: "Not found" });
+    }
+    res.status(200).json({ msg: "Deleted successfully" });
   } catch (error) {
-    next(error);
-  }
-};
-
-export const updateUserById = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const { id } = req.params;
-    const user = await updateUserByIdService(id as string, req.body);
-    res.status(200).json(user);
-  } catch (error) {
-    next(error);
+    res.status(500).send({ message: (error as Error).message });
   }
 };

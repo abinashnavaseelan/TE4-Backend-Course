@@ -1,19 +1,9 @@
-// src/server.ts
-import dotenv from "dotenv";
-import { createApp } from "./app";
 import mongoose from "mongoose";
+import { createApp } from "../app";
 
-dotenv.config();
-
+const PORT = Number(process.env.PORT) || 4000;
 const NODE_ENV = process.env.NODE_ENV || "development";
 const MONGO_URI = process.env.MONGO_URI ?? "mongodb://localhost:27017/myapp";
-const PORT = process.env.PORT ? Number(process.env.PORT) : 4000;
-
-const app = createApp();
-
-app.listen(PORT, () => {
-  console.log(`• Server running on http://localhost:${PORT}`);
-});
 
 const startServer = async () => {
   try {
