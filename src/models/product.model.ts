@@ -1,16 +1,27 @@
-import { Router } from "express";
-import {
-  createProduct,
-  getProductById,
-  getProducts,
-} from "../controllers/product.controller";
+import mongoose from "mongoose";
+import { z } from "zod";
 
-const router = Router();
+export interface Product {
+  name: string;
+  prise: number;
+  description: string;
+}
+export const ProductZodSchema = z.object({
+  body: z.object({
+    name: z.string("not valid").min(3),
+    prise: z.number("not valid").min(1),
+    description: z.string("not valid").min(0),
+  }),
+});
 
-router.get("/", getProducts);
+export type CreateProductTypeZ = z.infer<typeof ProductZodSchema>["body"];
 
-router.get("/:id", getProductById);
-
-router.post("/", createProduct);
-
-export default router;
+const productSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    age: { type: Number, required: true },
+  },
+  { timestamps: true },
+);
+export const ProductModel = mongoose.model<Product>("Product", productSchema);

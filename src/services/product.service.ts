@@ -1,40 +1,53 @@
-interface product {
-  id: number;
-  name: string;
-}
+import { ProductModel } from "../models/product.model";
+import { UserModel, type User } from "../models/user.model";
+import { AppError } from "../util/app.error";
 
-const products: product[] = [
-  {
-    id: 1,
-    name: "ipad",
-  },
-  {
-    id: 2,
-    name: "macbook",
-  },
-];
-
-export const getAllProducts = async (): Promise<product[]> => {
-  return new Promise((resolve) => {
-    resolve(products);
-  });
+export const createProduct = async (
+  name: string,
+  prise: number,
+  description: string,
+) => {
+  const existingProduct = await ProductModel.findOne({ name });
+  console.log(existingProduct);
+  if (existingProduct) throw new AppError("user alrady exists", 409);
+  const newProduct = { name, prise, description };
+  return newProduct;
 };
 
-export const createdProduct = async (name: string): Promise<product> => {
-  return new Promise((resolve, reject) => {
-    const existingProduct = products.find((product) => product.name === name);
+export const findAll = async () => {
+  const ProductUsers = await ProductModel.find({});
+  if (ProductUsers.length === 0) {
+    throw new AppError("Products not found", 404);
+  }
+  return ProductUsers;
+};
 
-    if (existingProduct) {
-      reject(new Error("product already exists in this system"));
-      return;
-    }
+export const findById = async (id: string) => {
+  const Product = await ProductModel.findById(id);
+  if (!Product) {
+    throw new AppError("Product not found", 404);
+  }
 
-    const newProduct: product = {
-      id: products.length + 1,
-      name,
-    };
+  return Product;
+};
 
-    products.push(newProduct);
-    resolve(newProduct);
+export const updateProductService = async (
+  id: string,
+  ProductData: Partial<User>,
+) => {
+  const existingProduct = await ProductModel.findById(id);
+  if (!existingProduct) throw new Error("User not found...");
+  const updatedProduct = await ProductModel.findByIdAndUpdate(id, ProductData, {
+    new: true,
+    runValidators: true,
   });
+
+  if (!updatedProduct) throw new Error("User not found...");
+  return updatedProduct;
+};
+
+export const deleteProductService = async (id: string) => {
+  const deletedProduct = await ProductModel.findByIdAndDelete(id);
+  if (!deletedProduct) throw new Error("User not found...");
+  return deletedProduct;
 };

@@ -7,7 +7,7 @@ import {
   updateProductById,
 } from "../controllers/product.controller";
 import { validate } from "../middleware/validate.middleware";
-import { createProductValidation } from "../models/product.model";
+import { createProductValidation } from "../models/product.model"
 
 const router = Router();
 router.get("/", getProducts);
