@@ -2,6 +2,7 @@
 import dotenv from "dotenv";
 import { createApp } from "./app";
 import mongoose from "mongoose";
+import { pool } from "./config/db";
 
 dotenv.config();
 
@@ -20,6 +21,14 @@ const startServer = async () => {
     await mongoose.connect(MONGO_URI);
     console.info(" Connected to MongoDB");
     const app = createApp();
+    pool
+      .connect()
+      .then(() => console.info(" Connected to PostgreSQL"))
+      .catch((err) => {
+        console.error("L Failed to connect to PostgreSQL");
+        console.error(err);
+        process.exit(1);
+      });
     app.listen(PORT, () => {
       console.log(
         `• Server running in ${NODE_ENV} mode on http://localhost:${PORT}`,
