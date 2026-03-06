@@ -1,43 +1,25 @@
 // src/server.ts
 import dotenv from "dotenv";
 import { createApp } from "./app";
-import mongoose from "mongoose";
-import { pool } from "./config/db";
 
 dotenv.config();
 
-const NODE_ENV = process.env.NODE_ENV || "development";
-const MONGO_URI = process.env.MONGO_URI ?? "mongodb://localhost:27017/myapp";
 const PORT = process.env.PORT ? Number(process.env.PORT) : 4000;
-
-const app = createApp();
-
-app.listen(PORT, () => {
-  console.log(`• Server running on http://localhost:${PORT}`);
-});
+const NODE_ENV = process.env.NODE_ENV || "development";
 
 const startServer = async () => {
   try {
-    await mongoose.connect(MONGO_URI);
-    console.info(" Connected to MongoDB");
     const app = createApp();
-    pool
-      .connect()
-      .then(() => console.info(" Connected to PostgreSQL"))
-      .catch((err) => {
-        console.error("L Failed to connect to PostgreSQL");
-        console.error(err);
-        process.exit(1);
-      });
+
     app.listen(PORT, () => {
       console.log(
-        `• Server running in ${NODE_ENV} mode on http://localhost:${PORT}`,
+        `🚀 Server running in ${process.env.NODE_ENV} mode on http://localhost:${PORT}`,
       );
     });
   } catch (error) {
-    console.error("L Failed to start server");
-    console.error(error);
+    console.error("❌ Failed to start the server", error);
     process.exit(1);
   }
 };
+
 startServer();
